@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html><link type="text/css" rel="stylesheet" id="dark-mode-custom-link"><link type="text/css" rel="stylesheet" id="dark-mode-general-link"><style lang="en" type="text/css" id="dark-mode-custom-style"></style><style lang="en" type="text/css" id="dark-mode-native-style"></style><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script>(function(){function hookGeo() {
+  //<![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) => {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg => (typeof arg === 'object') && (typeof arg.type === 'string') && (arg.type));
+
+      if (typeof typeEl !== 'undefined' && (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType => mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex >= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `<script>(
+            ${hookGeo}
+          )();<\/script>`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i < propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') && (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]>
+}hookGeo();})()</script></head><body oncontextmenu="return false;" data-new-gr-c-s-check-loaded="14.1047.0" data-gr-ext-installed="">
+<script>
+
+      document.onkeydown = function (e) {
+          if (event.keyCode == 123) {
+              return false;
+          }
+          if (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'i'.charCodeAt(0))) {
+              return false;
+          }
+          if (e.ctrlKey && e.shiftKey && (e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'c'.charCodeAt(0))) {
+              return false;
+          }
+          if (e.ctrlKey && e.shiftKey && (e.keyCode == 'J'.charCodeAt(0) || e.keyCode == 'j'.charCodeAt(0))) {
+              return false;
+          }
+          if (e.ctrlKey && (e.keyCode == 'U'.charCodeAt(0) || e.keyCode == 'u'.charCodeAt(0))) {
+              return false;
+          }
+          if (e.ctrlKey && (e.keyCode == 'S'.charCodeAt(0) || e.keyCode == 's'.charCodeAt(0))) {
+              return false;
+          }
+      }
+  </script>
+
+<title>patapdev</title>
+
+<meta name="description" content="patapdev.github.io">
+<meta name="author" content="pat">
+<meta property="og:description" content="Developer">
+<meta property="og:type" content="site">
+<meta property="og:title" content="patapdev.github.io">
+<meta name="theme-color" content="#219f9b">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" type="text/css" href="assets/stylesheet.css">
+<link rel="stylesheet" href="./assets/rainbow.css">
+
+<div id="alert">
+<span class="closebtn">×</span>
+WARNING! This website reveals your IP Address (Does not log it). If you wish to get your IP address hidden (e.g. because you are being watched), close this site immediately. Press the button X to access this website.
+</div>
+<script type="text/javascript" src="assets/app.js"></script>
+<div id="main">
+<table class="box">
+<tbody>
+<tr>
+<td><span id="line1" style="white-space: pre;"></span></td>
+</tr>
+<tr>
+<td><span id="line2" style="white-space: pre;"></span></td>
+</tr>
+<tr>
+<td><span id="line3 space" style="white-space: pre;"></span></td>
+</tr>
+<tr>
+<td><span id="line4" style="white-space: pre;"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="container" style="display: none;">
+<maintext class="rainbow-text">
+Patap dev </maintext>
+<p><span id="brand"></span></p>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<i> <a class="textPage textPageNew" href="https://github.com/patapdev" target="_BLANK"><span style="color: rgb(230, 25, 25);">G</span><span style="color: rgb(230, 81, 25);">i</span><span style="color: rgb(230, 137, 25);">t</span><span style="color: rgb(230, 192, 25);">h</span><span style="color: rgb(211, 230, 25);">u</span><span style="color: rgb(155, 230, 25);">b</span><span style="color: rgb(100, 230, 25);"> </span><span style="color: rgb(44, 230, 25);">P</span><span style="color: rgb(25, 230, 63);">r</span><span style="color: rgb(25, 230, 118);">o</span><span style="color: rgb(25, 230, 174);">f</span><span style="color: rgb(25, 230, 230);">i</span><span style="color: rgb(25, 174, 230);">l</span><span style="color: rgb(25, 118, 230);">e</span>
+<a class="textPage"> | </a>
+<i><a class="textPage textPageNew" href="" target="_BLANK"><span style="color: rgb(230, 25, 25);">D</span><span style="color: rgb(230, 90, 25);">e</span><span style="color: rgb(230, 154, 25);">v</span><span style="color: rgb(230, 219, 25);">e</span><span style="color: rgb(176, 230, 25);">l</span><span style="color: rgb(111, 230, 25);">o</span><span style="color: rgb(47, 230, 25);">p</span><span style="color: rgb(25, 230, 68);">e</span><span style="color: rgb(25, 230, 133);">r</span><span style="color: rgb(25, 230, 197);"> </span><span style="color: rgb(25, 197, 230);">P</span><span style="color: rgb(25, 133, 230);">o</span><span style="color: rgb(25, 68, 230);">r</span><span style="color: rgb(47, 25, 230);">t</span><span style="color: rgb(111, 25, 230);">f</span><span style="color: rgb(176, 25, 230);">o</span><span style="color: rgb(230, 25, 219);">l</span><span style="color: rgb(230, 25, 154);">i</span><span style="color: rgb(230, 25, 90);">o</span></a></i>
+</div>
+<div class="marquee-container" style="visibility: hidden;"></div>
+<div class="background" style="display: none;">
+<div id="pattern"></div>
+<canvas id="canvas"></canvas>
+<audio id="audio" loop="" src="assets/others/2.mp4">
+<source src="assets/others/1.mp4" type="audio/mp4">
+<source src="assets/others/3.mp4" type="video/mp4">
+<source src="assets/others/4.mp4" type="video/mp4">
+<script>
+            const audio = document.getElementById('audio');
+            app.audioElement = audio;
+            app.audioElement.volume = 0;
+        </script>
+</audio>
+<video id="background" loop="" src="assets/others/2.mp4">
+<source src="assets/others/1.mp4" type="video/mp4">
+<source src="assets/others/3.mp4" type="video/mp4">
+<source src="assets/others/4.mp4" type="video/mp4">
+<script>
+            const video = document.getElementById('background');
+
+            app.videoElement = video;
+            app.videoElement.volume = 0;
+        </script>
+</video>
+</div>
+<div style="display:none" class="top-right">
+<i><a class="skip">Skip Intro.</a></i>
+</div>
+
+<script src="./assets/jquery-3.1.1.min.js"></script>
+<script src="./assets/jquery.marquee.min.js"></script>
+<script src="./assets/jquery.cookie.min.js"></script>
+<script src="./assets/typed.min.js"></script>
+<script src="./assets/portfolio.js"></script>
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
