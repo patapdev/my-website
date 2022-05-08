@@ -19,6 +19,32 @@
     }
 }
 
+@keyframes epicvis {
+    0% {
+        background-color: #45a3e5
+    }
+
+    30% {
+        background-color: #66bf39
+    }
+
+    60% {
+        background-color: #eb670f
+    }
+
+    80% {
+        background-color: #f35
+    }
+
+    90% {
+        background-color: #864cbf
+    }
+
+    100% {
+        background-color: #45a3e5
+    }
+}
+
 maintext {
     margin: 0;
     position: absolute;
@@ -56,6 +82,17 @@ white-space: nowrap;
     animation: epicText 4s linear infinite;
     color: inherit;
 white-space: nowrap;
+}
+
+.visualizer-container__bar {
+	display: inline-block;
+	margin: 0 2px;
+	width: 25px;
+    animation: epicvis 7s linear infinite;
+    opacity: 0.8;
+    white-space:nowrap;
+    
+
 }
 
 canvas { width: 100vw; height: 100vh; display: block; }

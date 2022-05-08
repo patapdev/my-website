@@ -30,3 +30,12 @@ pre{font-size:1.15em}
 .footer{position:absolute;bottom:0;right:5px}
 .trollface-light{-webkit-filter:invert(100%);-moz-filter:invert(100%);-ms-filter:invert(100%)}
 ::-webkit-scrollbar{width:0}
+.visualizer-container {
+	position: absolute;
+	bottom:0%;
+	width: 1900;
+	height: 350;
+	white-space:nowrap;
+
+	text-align: center;
+}
