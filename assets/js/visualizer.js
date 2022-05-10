@@ -1,10 +1,11 @@
+
 (function () {
 
     // The number of bars that should be displayed
-    const NBR_OF_BARS = 66;
+    const NBR_OF_BARS = 60;
 
     // Get the audio element tag
-    const audio = document.querySelector("audio");
+    const audio = document.querySelector("audio"); 
 
     // Create an audio context
     const ctx = new AudioContext();
@@ -67,7 +68,16 @@
         // At the next animation frame, call ourselves
         window.requestAnimationFrame(renderFrame);
 
+
     }
+
+    document.querySelector('body').addEventListener('click', function() {
+        ctx.resume().then(() => {
+          console.log('Playback resumed successfully');
+        });
+    });
+
+    
 
     renderFrame();
 
